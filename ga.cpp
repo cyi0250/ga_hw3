@@ -243,24 +243,24 @@ void klalg(int *bitstring, int n_bits, int n_edge, struct VERT l_v[], struct EDG
         l_v[i].vert_grp = bitstring[i];
     }
 
-    for(int i = 0; i<n_edge; i++){
+    for(int i = 0; i < n_edge; i++){
         int a_grp = l_e[i].a->vert_grp;
         int b_grp = l_e[i].b->vert_grp;
         if(a_grp == b_grp){
-            gain[a_id] += l_e[i].w;
-            gain[b_id] += l_e[i].w;
+            gain[l_e[i].a->vert_id] += l_e[i].w;
+            gain[l_e[i].b->vert_id] += l_e[i].w;
         }
         else{
-            gain[a_id] -= l_e[i].w;
-            gain[b_id] -= l_e[i].w;
+            gain[l_e[i].a->vert_id] -= l_e[i].w;
+            gain[l_e[i].b->vert_id] -= l_e[i].w;
         }
     }
 
     for(int i = 0; i < n_bits; i++){
         for(int j = i+1; j < n_bits; j++){
             int delta = 0;
-            for(int k = 0; k < n_edge, k++){
-                if(l_e[k].a.vert_id == i && l_e[k].b.vert_id == j){
+            for(int k = 0; k < n_edge; k++){
+                if(l_e[k].a->vert_id == i && l_e[k].b->vert_id == j){
                     delta = 2 * l_e[k].w;
                     break;
                 }
@@ -278,8 +278,8 @@ void klalg(int *bitstring, int n_bits, int n_edge, struct VERT l_v[], struct EDG
     for(int a = 0; a < n_bits; a++){
         int max = 0;
         int max_i, max_j;
-        for(i = 0; i < n_bits; i++){
-            for(j = i+1; j < n_bits; j++){
+        for(int i = 0; i < n_bits; i++){
+            for(int j = i+1; j < n_bits; j++){
                 if(totgain[i][j] > max){
                     if(visited[i] == 1 || visited[j] == 1)
                         continue;
@@ -293,18 +293,18 @@ void klalg(int *bitstring, int n_bits, int n_edge, struct VERT l_v[], struct EDG
         visited[max_j] = count;
         count++;
         if(a == 0)
-            maxgain[a] = totgain[i][j];
+            maxgain[a] = totgain[max_i][max_j];
         else
-            maxgain[a] += maxgain[a-1] + totgain[i][j];
+            maxgain[a] += maxgain[a-1] + totgain[max_i][max_j];
 
         for(int i = 0; i < n_bits; i++){
             if(visited[i] == 1)
                 continue;
             int delta1, delta2 = 0;
             for(int j = 0; j < n_edge; j++){
-                if(l_e[j].a.vert_id == i && l_e[j].b.vert_id == max_i)
+                if(l_e[j].a->vert_id == i && l_e[j].b->vert_id == max_i)
                     delta1 = 2 * l_e[j].w;
-                if(l_e[l].a.vert_id == i && l_e[j].b.vert_id == max_j)
+                if(l_e[j].a->vert_id == i && l_e[j].b->vert_id == max_j)
                     delta2 = 2 * l_e[j].w;
             }
             if(l_v[i].vert_grp == l_v[max_i].vert_grp)
@@ -314,8 +314,8 @@ void klalg(int *bitstring, int n_bits, int n_edge, struct VERT l_v[], struct EDG
         }
     }
 
-    max_maxgain = 0;
-    max_k = 0;
+    int max_maxgain = 0;
+    int max_k = 0;
     for(int i = 0; i < n_bits; i++){
         if(max_maxgain < maxgain[i]){
             max_maxgain = maxgain[i];
