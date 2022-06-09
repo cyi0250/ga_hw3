@@ -88,6 +88,104 @@ int evaluate(int*bitstring, int n_bits, int n_edge, struct VERT l_v[], struct ED
     return score;
 }
 
+void klalg(int *bitstring, int n_bits, int n_edge, struct VERT l_v[], struct EDGE l_e[]){
+    int gain[n_bits] = {0,};
+    int totgain[n_bits][n_bits] = {0,};
+
+    for(int i = 0; i < n_bits; i++){
+        l_v[i].vert_grp = bitstring[i];
+    }
+    
+    for(int i = 0; i<n_edge; i++){
+        int a_grp = l_e[i].a->vert_grp;
+        int b_grp = l_e[i].b->vert_grp;
+        if(a_grp == b_grp){
+            gain[a_id] += l_e[i].w;
+            gain[b_id] += l_e[i].w;
+        }
+        else{
+            gain[a_id] -= l_e[i].w;
+            gain[b_id] -= l_e[i].w;
+        }
+    }
+    
+    for(int i = 0; i < n_bits; i++){
+        for(int j = i+1; j < n_bits; j++){
+            int delta = 0;
+            for(int k = 0; k < n_edge, k++){
+                if(l_e[k].a.vert_id == i && l_e[k].b.vert_id == j){
+                    delta = 2 * l_e[k].w;
+                    break;
+                }
+            }
+            if(l_v[i].vert_grp != l_v[j].vert_grp){
+                totgain[i][j] = gain[i] + gain[j] - delta;
+            }
+        }
+    }
+
+    
+    int visited[n_bits] = {0,};
+    int maxgain[n_bits] = {0,};
+    int count = 1;
+    for(int a = 0; a < n_bits; a++){
+        int max = 0;
+        int max_i, max_j;
+        for(i = 0; i < n_bits; i++){
+            for(j = i+1; j < n_bits; j++){
+                if(totgain[i][j] > max){
+                    if(visited[i] == 1 || visited[j] == 1)
+                        continue;
+                    max = totgain[i][j];
+                    max_i = i;
+                    max_j = j;
+                }
+            }
+        }
+        visited[max_i] = count;
+        visited[max_j] = count;
+        count++;
+        if(a == 0)
+            maxgain[a] = totgain[i][j];
+        else
+            maxgain[a] += maxgain[a-1] + totgain[i][j];
+
+        for(int i = 0; i < n_bits; i++){
+            if(visited[i] == 1)
+                continue;
+            int delta1, delta2 = 0;
+            for(int j = 0; j < n_edge; j++){
+                if(l_e[j].a.vert_id == i && l_e[j].b.vert_id == max_i)
+                    delta1 = 2 * l_e[j].w;
+                if(l_e[l].a.vert_id == i && l_e[j].b.vert_id == max_j)
+                    delta2 = 2 * l_e[j].w;
+            }
+            if(l_v[i].vert_grp == l_v[max_i].vert_grp)
+                gain[i] = gain[i] + delta1 - detla2;
+            else
+                gain[i] = gain[i] - delta1 + delta2;
+        }
+    }
+    
+    max_maxgain = 0;
+    max_k = 0;
+    for(int i = 0; i < n_bits; i++){
+        if(max_maxgain < maxgain[i]){
+            max_maxgain = maxgain[i];
+            max_k = i+1;
+        }
+    }
+    
+    for(int i = 0; i < n_bits; i++){
+        if(0 < visited[i] && visited[i] <= max_k){
+            if(bitstring[i] == 0)
+                bitstring[i] = 1;
+            else
+                bitstring[i] = 0;
+        }
+    }
+}
+
 void evaluate_el(struct EL * el, int n_bits, int n_edge, struct VERT l_v[], struct EDGE l_e[]){
     el->score = evaluate(el->bitstring, n_bits, n_edge, l_v, l_e);
 }
@@ -133,7 +231,6 @@ void crossover(struct EL * p1, struct EL * p2, struct EL * result, float r_cross
     result[0].bitstring = c1_ptr;
     result[1].bitstring = c2_ptr;
 }
-
 
 int get_highest_idx(struct EL * pop, int n_pop){
     float highest_score = pop[0].score;
